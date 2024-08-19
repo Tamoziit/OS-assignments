@@ -11,4 +11,3 @@ for file in *
 	done
 	
 echo "Total Size of Non-directory files = $totalSize"
-		
