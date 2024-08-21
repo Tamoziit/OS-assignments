@@ -1,5 +1,4 @@
-echo "Please enter your name:"
-read USER_NAME
+USER_NAME=`whoami`
 
 # Get the current hour in 24-hour format
 HOUR=$(date +%H)
@@ -16,7 +15,7 @@ else
 fi
 
 # Get the current date and time
-CURRENT_DATE_TIME=$(date)
+CURRENT_DATE_TIME=$(date +%c)
 
 # Get the process ID of the terminal
 TERMINAL_PID=$$
