@@ -9,6 +9,11 @@ word=$1
 input_file=$2
 output_file=$3
 
+if [ ! -e $input_file ]||[ ! -e $output_file ]; then\
+	echo "Cannot find provided files"
+	exit 1
+fi
+
 # Using grep with -v to invert match, which excludes lines containing the word
 grep -v "$word" "$input_file" > "$output_file"
 
