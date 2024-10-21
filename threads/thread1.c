@@ -16,16 +16,10 @@ void* print_hello(void* threadarg) {
     int thread_id = *(int*)threadarg;
     
     printf("Hello from thread %d, Thread id = %ld\n", thread_id, pthread_self());
-}
-
-void* exitFunc(void* threadarg) {
-	--threads_created;
-	int thread_id = *(int*)threadarg;
-	
-	// Returning thread ID to the main thread
+    
+    // Returning thread ID to the main thread
     pthread_exit((void*)(long)thread_id);
-}
-	
+}	
 
 int main() {
     pthread_t threads[NUM_THREADS];
@@ -37,24 +31,22 @@ int main() {
         thread_data[i] = i + 1; // Thread IDs start from 1
         mutex = 1;
         if(mutex) {
-        	pthread_create(&threads[i], NULL, print_hello, (void*)&thread_data[i]);
-            // Increment the count of created threads
-        	threads_created++;
-        } else {
         	wait(NULL);
         }
+        pthread_create(&threads[i], NULL, print_hello, (void*)&thread_data[i]);
+        // Increment the count of created threads
+        threads_created++;
     }
 
     // Wait for all threads to complete and print their return values
     for (int i = 0; i < NUM_THREADS; i++) {
-        if(threads_created == NUM_THREADS - 1 - i)
+        if(threads_created != NUM_THREADS - 1 - i)
         {
-        	exitFunc((void*)&thread_data[i]);
-        	pthread_join(threads[i], &status);
-        	printf("Thread %d has finished with return value: %ld\n", i + 1, (long)status);
-        } else {
         	wait(NULL);
         }
+        --threads_created;
+        pthread_join(threads[i], &status);
+        printf("Thread %d has finished with return value: %ld\n", i + 1, (long)status);
     }
 
     pthread_exit(NULL); // Exit main thread
