@@ -19,7 +19,7 @@ void* thread_ops(void* threadarg) {
     printf("Hello from thread %d; Thread id = %lu\n", thread_data, sid);
     pthread_mutex_unlock(&mutex1);
     
-    if(threads_created != 2)
+    if(threads_created != 1)
     {
 		wait(NULL);
     }
@@ -28,13 +28,13 @@ void* thread_ops(void* threadarg) {
 }	
 
 int main() {
-    pthread_t threads[2];
+    pthread_t threads[1];
     int thread_data[NUM_THREADS];
     int status, i, x=0;
     void *retval;
     
 
-    for (i = 0; i < NUM_THREADS; i+=2) {
+    for (i = 0; i < NUM_THREADS; i++) {
     	if(threads_created != 0)
     		wait(NULL);
 
@@ -45,26 +45,14 @@ int main() {
         	exit(1);
         }
         
-        thread_data[x] = i + 2;
-        if((status = pthread_create(&threads[1], NULL, &thread_ops, (void*)&thread_data[x++])))
-        {
-        	printf("Error in creating thread %d\n", thread_data[x]);
-        	exit(1);
-        }
-        threads_created+=2;
+        threads_created++;
 
-		if(threads_created == 2)
+		if(threads_created == 1)
 		{
 				pthread_mutex_lock(&mutex2);
-		    	pthread_join(threads[1], &retval);
-		    	printf("Thread %d has finished with return value: %lu\n", i + 2, (long)retval);
-		    	
-		    	wait(NULL);
-		    	
 		    	pthread_join(threads[0], &retval);
 		    	printf("Thread %d has finished with return value: %lu\n", i + 1, (long)retval);
-		    	
-		    	threads_created-=2;
+		    	threads_created--;
 				pthread_mutex_unlock(&mutex2);
 		} else {
 			wait(NULL);

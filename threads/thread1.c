@@ -10,7 +10,6 @@
 int threads_created = 0;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex3 = PTHREAD_MUTEX_INITIALIZER;
 
 // Thread function
 void* thread_ops(void* threadarg) {
@@ -19,7 +18,7 @@ void* thread_ops(void* threadarg) {
     
     pthread_mutex_lock(&mutex1);
     sid = pthread_self();
-    printf("Hello from thread %d; Thread id = %lu\n", thread_data, pthread_self());
+    printf("Hello from thread %d; Thread id = %lu\n", thread_data, sid);
     pthread_mutex_unlock(&mutex1);
     
     if(threads_created != thread_data)
@@ -50,18 +49,17 @@ int main() {
     // Wait for all threads to complete and print their return values
     if(threads_created == NUM_THREADS)
     {
-    	pthread_mutex_lock(&mutex2);
     	for (int i = 0; i < NUM_THREADS; i++) {
+			pthread_mutex_lock(&mutex2);
         	pthread_join(threads[i], &retval);
         	printf("Thread %d has finished with return value: %lu\n", i + 1, (long)retval);
         	threads_created--;
         	wait(NULL);
+		    pthread_mutex_unlock(&mutex2);
         }
-        pthread_mutex_unlock(&mutex2);
     }
 	
 	pthread_mutex_destroy(&mutex1);
 	pthread_mutex_destroy(&mutex2);
-	pthread_mutex_destroy(&mutex3);
     pthread_exit(NULL); // Exit main thread
 }
