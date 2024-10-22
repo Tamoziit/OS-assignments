@@ -8,46 +8,60 @@
 
 // Global variable to track the number of created threads & mutex
 int threads_created = 0;
-int mutex = 0;
+pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex3 = PTHREAD_MUTEX_INITIALIZER;
 
 // Thread function
-void* print_hello(void* threadarg) {
-	mutex = 0;
-    int thread_id = *(int*)threadarg;
+void* thread_ops(void* threadarg) {
+    int thread_data = *(int*)threadarg;
+    pthread_t sid;
     
-    printf("Hello from thread %d, Thread id = %ld\n", thread_id, pthread_self());
+    pthread_mutex_lock(&mutex1);
+    sid = pthread_self();
+    printf("Hello from thread %d; Thread id = %lu\n", thread_data, pthread_self());
+    pthread_mutex_unlock(&mutex1);
     
-    // Returning thread ID to the main thread
-    pthread_exit((void*)(long)thread_id);
+    if(threads_created != thread_data)
+    {
+		wait(NULL);
+    }
+	// Returning thread ID to the main thread
+	pthread_exit((void*)(long)sid);
 }	
 
 int main() {
     pthread_t threads[NUM_THREADS];
     int thread_data[NUM_THREADS];
-    void* status;
+    int status;
+    void *retval;
 
-    // Create all threads first
+    // Creating all threads first
     for (int i = 0; i < NUM_THREADS; i++) {
-        thread_data[i] = i + 1; // Thread IDs start from 1
-        mutex = 1;
-        if(mutex) {
-        	wait(NULL);
+        thread_data[i] = i + 1;
+        if((status = pthread_create(&threads[i], NULL, &thread_ops, (void*)&thread_data[i])))
+        {
+        	printf("Error in creating thread %d\n", thread_data[i]);
+        	exit(1);
         }
-        pthread_create(&threads[i], NULL, print_hello, (void*)&thread_data[i]);
-        // Increment the count of created threads
         threads_created++;
     }
 
     // Wait for all threads to complete and print their return values
-    for (int i = 0; i < NUM_THREADS; i++) {
-        if(threads_created != NUM_THREADS - 1 - i)
-        {
+    if(threads_created == NUM_THREADS)
+    {
+    	pthread_mutex_lock(&mutex2);
+    	for (int i = 0; i < NUM_THREADS; i++) {
+        	pthread_join(threads[i], &retval);
+        	printf("Thread %d has finished with return value: %lu\n", i + 1, (long)retval);
+        	threads_created--;
         	wait(NULL);
         }
-        --threads_created;
-        pthread_join(threads[i], &status);
-        printf("Thread %d has finished with return value: %ld\n", i + 1, (long)status);
+        pthread_mutex_unlock(&mutex2);
     }
-
+	
+	pthread_mutex_destroy(&mutex1);
+	pthread_mutex_destroy(&mutex2);
+	pthread_mutex_destroy(&mutex3);
     pthread_exit(NULL); // Exit main thread
 }
